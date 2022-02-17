@@ -12,7 +12,7 @@
 -[x] Criação de um módulo que provisiona a EC2
 
 #### Organização do código
-<p>
+
 ##### **Pasta remote_tfstate**
 **bucket.tf**: Nesse arquivo há a **criação do bucket s3** que servirá para armanezar o tfstate do projeto.
 <details><summary>Clique para expandir</summary>
@@ -45,7 +45,7 @@ output "remote_state_bucket_arn" {
 ```
 </details>
 
-<p>
+
 ##### Pasta infra-terraform
 **network.tf**: Nesse arquivo há a **criação da nova VPC**, **criação das três subnets**, **criação da route table**, **associação das subnets com a route table** e a **criação do Internet Gateway**
 > Plus: Criação de um data com acesso ao site http://ipv4.icanhazip.com para buscar o meu ip e permitir no arquivo do security group o acesso ssh somente a esse endereço
@@ -143,7 +143,7 @@ resource "aws_internet_gateway" "igw" {
 </p>
 </details>
 
-<p>
+
 **security_group.tf**: Nesse arquivo há a **criação do acessos** ao ssh na **porta 22** apenas para o meu ip e o acesso a **porta 80**
 <details><summary>Clique para expandir</summary>
 
@@ -209,7 +209,7 @@ resource "aws_security_group" "acesso-porta80" {
 </p>
 </details>
 
-<p>
+
 **remote_state.tf**: Nesse arquivo há a **definição do backend** como S3 para armazenar as informações referente ao tfstate
 <details><summary>Clique para expandir</summary>
 
@@ -225,7 +225,7 @@ terraform {
 </p>
 </details>
 
-<p>
+
 **ec2.tf**: Nesse arquivo há o provisionamento da ec2 com a utilização do módulo, um output pra informação o ip publico da instância e um recurso para você informar a sua chave ssh para acesso remoto a instância
 > IMPORTANTE: caso você vá utilizar esse repositório e subi-lo em seu git pessoal, remova sua chave do campo **public_key**
 
