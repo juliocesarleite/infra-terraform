@@ -18,21 +18,32 @@
 <details><summary>Clique para expandir</summary>
 
 ```
+
 provider "aws" {
   version = "~> 3.0"
   region  = "sa-east-1"
 }
 
 data "aws_caller_identity" "current" {}
+
 resource "aws_s3_bucket" "remotestate" {
   bucket = "tfstate-${data.aws_caller_identity.current.account_id}"
+
   tags = {
     Name        = "Remote State"
     Environment = "Dev"
   }
+
   versioning {
     enabled = true
   }
+}
+
+resource "aws_s3_bucket_public_access_block" "block_public_acess" {
+  bucket = aws_s3_bucket.remotestate.id
+
+  block_public_acls   = true
+  block_public_policy = true
 }
 
 output "remote_state_bucket" {
@@ -42,13 +53,14 @@ output "remote_state_bucket" {
 output "remote_state_bucket_arn" {
   value = aws_s3_bucket.remotestate.arn
 }
+
 ```
 </details>
 
 
 ##### Pasta infra-terraform
-**network.tf**: Nesse arquivo há a **criação da nova VPC**, **criação das três subnets**, **criação da route table**, **associação das subnets com a route table** e a **criação do Internet Gateway**
-> Plus: Criação de um data com acesso ao site http://ipv4.icanhazip.com para buscar o meu ip e permitir no arquivo do security group o acesso ssh somente a esse endereço
+**network.tf**: Nesse arquivo há a **criação da nova VPC**, **criação das três subnets**, **criação da route table**, **associação das subnets com a route table** e a **criação do Internet Gateway**.
+
 
 <details><summary>Clique para expandir</summary>
 
@@ -60,9 +72,6 @@ resource "aws_vpc" "main" {
   }
 }
 
-data "http" "myip" {
-  url = "http://ipv4.icanhazip.com" # outra opção "https://ifconfig.me"
-}
 
 resource "aws_route_table" "main_RT" {
   vpc_id = aws_vpc.main.id
@@ -144,7 +153,7 @@ resource "aws_internet_gateway" "igw" {
 </details>
 
 
-**security_group.tf**: Nesse arquivo há a **criação do acessos** ao ssh na **porta 22** apenas para o meu ip e o acesso a **porta 80**
+**security_group.tf**: Nesse arquivo há a **criação do acessos** ao ssh na **porta 22** apenas para o meu ip e o acesso a **porta 80**.
 <details><summary>Clique para expandir</summary>
 
 ```
@@ -210,7 +219,7 @@ resource "aws_security_group" "acesso-porta80" {
 </details>
 
 
-**remote_state.tf**: Nesse arquivo há a **definição do backend** como S3 para armazenar as informações referente ao tfstate
+**remote_state.tf**: Nesse arquivo há a **definição do backend** como S3 para armazenar as informações referente ao tfstate.
 <details><summary>Clique para expandir</summary>
 
 ```
@@ -226,11 +235,10 @@ terraform {
 </details>
 
 
-**ec2.tf**: Nesse arquivo há o provisionamento da ec2 com a utilização do módulo, um output pra informação o ip publico da instância e um recurso para você informar a sua chave ssh para acesso remoto a instância
-> IMPORTANTE: caso você vá utilizar esse repositório e subi-lo em seu git pessoal, remova sua chave do campo **public_key**
+**ec2.tf**: Nesse arquivo há o **provisionamento da ec2 com a utilização do módulo**, um **output** pra informação o **ip público** da instância e um recurso para você informar a sua chave ssh para acesso remoto a instância.
 
 <details><summary>Clique para expandir</summary>
-<p>
+
 ```
 provider "aws" {
   version = "~> 3.0"
@@ -239,14 +247,14 @@ provider "aws" {
 
 resource "aws_key_pair" "julio-key2" {
   key_name   = "julio-key2"
-  public_key = "Insira aqui a sua chave"
+  public_key = file("C:/Users/Julio Leite/.ssh/id_rsa.pub")
 }
 
 module "instancia_ec2" {
   source                      = "./ec2_module"
   amis                         = var.amis
   instance_type               = var.instance_type
-  key_name                    = var.key_name
+  key_name                    = aws_key_pair.julio-key2.key_name
   associate_public_ip_address = true
   vpc_security_group_ids      = ["${aws_security_group.acesso-ssh.id}", "${aws_security_group.acesso-porta80.id}"]
   subnet_id                   = aws_subnet.subnet1.id
@@ -260,8 +268,141 @@ module "instancia_ec2" {
 
 output "public_ip" {
   value       = module.instancia_ec2.public_ip
-  description = "Mostra os IPs publicos e privados da maquina criada."
+  description = "Mostra o IP publico da maquina criada."
   depends_on = [module.instancia_ec2]
+}
+```
+</p>
+</details>
+
+**variables.sh**: Nesse arquivo há a **definição das variáveis** a serem utilizadas pela pasta principal.
+
+<details><summary>Clique para expandir</summary>
+
+```
+variable "instance_type" {
+  type    = string
+  default = "t2.micro"
+}
+
+variable "amis" {
+  type = string
+  default = "ami-07b5a89195c6932c8"
+}
+
+variable "key_name" {
+  type    = string
+  default = "julio-key2"
+}
+```
+</p>
+</details>
+
+**userdata.sh**: Nesse arquivo há os **comandos necessários** para serem executados na instância, a fim de completar a **instalação do nginx** e colocá-lo no ar.
+
+<details><summary>Clique para expandir</summary>
+
+```
+#!/bin/bash
+sudo apt update -y
+sudo apt install nginx -y 
+sudo systemctl enable nginx
+echo "<h1>Deployed via Terraform</h1>" | sudo tee /var/www/html/index.nginx-debian.html
+sudo systemctl start nginx
+```
+</p>
+</details>
+
+**data.tf**: Criação de um **data** com acesso ao site http://ipv4.icanhazip.com **para buscar o meu ip** e permitir no arquivo do security group o acesso ssh somente a esse endereço.
+
+<details><summary>Clique para expandir</summary>
+
+```
+data "http" "myip" {
+  url = "http://ipv4.icanhazip.com" # outra opção "https://ifconfig.me"
+}
+```
+</p>
+</details>
+
+
+##### Pasta ec2_module
+**main.tf**: Nesse arquivo há o **template para a criação de uma instância a partir do módulo**.
+
+<details><summary>Clique para expandir</summary>
+
+```
+resource "aws_instance" "this" {
+    ami  = var.amis
+    instance_type = var.instance_type
+    key_name = var.key_name
+    associate_public_ip_address = var.associate_public_ip_address
+    vpc_security_group_ids = var.vpc_security_group_ids
+    subnet_id = var.subnet_id
+    user_data = var.user_data
+}
+```
+</p>
+</details>
+
+**variables.tf**: Nesse arquivo há a **definição das variáveis** a serem utilizadas pelo módulo.
+
+<details><summary>Clique para expandir</summary>
+
+```
+
+variable "instance_type" {
+  type    = string
+  default = "t2.micro"
+}
+
+variable "amis" {
+  type = string
+}
+
+variable "key_name" {
+  type    = string
+}
+
+variable "associate_public_ip_address"  {
+    type  = bool
+    default = true
+}
+
+variable "vpc_security_group_ids" {
+    type  = list 
+    default = [""]
+}
+
+variable "subnet_id" {
+    type  = string
+    default = null
+}
+
+variable "user_data" {
+    type  = string
+    default = ""
+}
+
+variable "tags" {
+    type  = map(string)
+    default = {
+        Terraform = ""
+        Environment = ""
+    }
+}
+```
+</p>
+</details>
+
+**output.tf**: Nesse arquivo há a **definição do output do módulo**, sendo ele o ip publicado gerado pela instância.
+
+<details><summary>Clique para expandir</summary>
+
+```
+output "public_ip" {
+  value       = "${aws_instance.this.public_ip}"
+  description = "Mostra o IP privados da maquina criada."
 }
 ```
 </p>
