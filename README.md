@@ -1,7 +1,7 @@
 ### KT TERRAFORM
 
 #### Proposta do projeto:
-> Criação de uma infraestrutura na Cloud AWS a partir do código TerraForm, contendo os seguintes recursos configurados:
+Criação de uma infraestrutura na Cloud AWS a partir do código TerraForm, contendo os seguintes recursos configurados:
 -[x] Criação de uma VPC
 -[x] Criação de 3 subnets em Avaliabilities Zones diferentes dentro da VPC
 -[x] Criação de Internet Gateway
