@@ -1,15 +1,17 @@
-### KT TERRAFORM
+<h1 align="center">
+    <a> KT Terraform</a>
+</h1>
 
 #### Proposta do projeto:
-Criação de uma infraestrutura na Cloud AWS a partir do código TerraForm, contendo os seguintes recursos configurados:
--[x] Criação de uma VPC
--[x] Criação de 3 subnets em Avaliabilities Zones diferentes dentro da VPC
--[x] Criação de Internet Gateway
--[x] Criação de Route Table
--[x] Criação de dois security group, sendo um com acesso a porta 80 e outro a porta 22
--[x] Criação de um EC2 com nginx ativo e acessível na porta 80
--[x] Criação de um bucket S3, sem acesso a internet, para servir como repositório ao terraform.tfstate
--[x] Criação de um módulo que provisiona a EC2
+
+- [x] Criação de uma VPC
+- [x] Criação de 3 subnets em Avaliabilities Zones diferentes dentro da VPC
+- [x] Criação de Internet Gateway
+- [x] Criação de Route Table
+- [x] Criação de dois security group, sendo um com acesso a porta 80 e outro a porta 22
+- [x] Criação de um EC2 com nginx ativo e acessível na porta 80
+- [x] Criação de um bucket S3, sem acesso a internet, para servir como repositório ao terraform.tfstate
+- [x] Criação de um módulo que provisiona a EC2
 
 
 &nbsp;
