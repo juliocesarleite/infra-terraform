@@ -11,6 +11,8 @@
 -[x] Criação de um bucket S3, sem acesso a internet, para servir como repositório ao terraform.tfstate
 -[x] Criação de um módulo que provisiona a EC2
 
+
+&nbsp;
 #### Organização do código
 
 ##### **Pasta remote_tfstate**
@@ -58,6 +60,7 @@ output "remote_state_bucket_arn" {
 </details>
 
 
+&nbsp;
 ##### Pasta infra-terraform
 **network.tf**: Nesse arquivo há a **criação da nova VPC**, **criação das três subnets**, **criação da route table**, **associação das subnets com a route table** e a **criação do Internet Gateway**.
 
@@ -153,6 +156,7 @@ resource "aws_internet_gateway" "igw" {
 </details>
 
 
+&nbsp;
 **security_group.tf**: Nesse arquivo há a **criação do acessos** ao ssh na **porta 22** apenas para o meu ip e o acesso a **porta 80**.
 <details><summary>Clique para expandir</summary>
 
@@ -219,6 +223,7 @@ resource "aws_security_group" "acesso-porta80" {
 </details>
 
 
+&nbsp;
 **remote_state.tf**: Nesse arquivo há a **definição do backend** como S3 para armazenar as informações referente ao tfstate.
 <details><summary>Clique para expandir</summary>
 
@@ -235,6 +240,7 @@ terraform {
 </details>
 
 
+&nbsp;
 **ec2.tf**: Nesse arquivo há o **provisionamento da ec2 com a utilização do módulo**, um **output** pra informação o **ip público** da instância e um recurso para você informar a sua chave ssh para acesso remoto a instância.
 
 <details><summary>Clique para expandir</summary>
@@ -275,6 +281,8 @@ output "public_ip" {
 </p>
 </details>
 
+
+&nbsp;
 **variables.sh**: Nesse arquivo há a **definição das variáveis** a serem utilizadas pela pasta principal.
 
 <details><summary>Clique para expandir</summary>
@@ -298,6 +306,8 @@ variable "key_name" {
 </p>
 </details>
 
+
+&nbsp;
 **userdata.sh**: Nesse arquivo há os **comandos necessários** para serem executados na instância, a fim de completar a **instalação do nginx** e colocá-lo no ar.
 
 <details><summary>Clique para expandir</summary>
@@ -313,6 +323,8 @@ sudo systemctl start nginx
 </p>
 </details>
 
+
+&nbsp;
 **data.tf**: Criação de um **data** com acesso ao site http://ipv4.icanhazip.com **para buscar o meu ip** e permitir no arquivo do security group o acesso ssh somente a esse endereço.
 
 <details><summary>Clique para expandir</summary>
@@ -326,6 +338,7 @@ data "http" "myip" {
 </details>
 
 
+&nbsp;
 ##### Pasta ec2_module
 **main.tf**: Nesse arquivo há o **template para a criação de uma instância a partir do módulo**.
 
@@ -345,6 +358,8 @@ resource "aws_instance" "this" {
 </p>
 </details>
 
+
+&nbsp;
 **variables.tf**: Nesse arquivo há a **definição das variáveis** a serem utilizadas pelo módulo.
 
 <details><summary>Clique para expandir</summary>
@@ -395,6 +410,8 @@ variable "tags" {
 </p>
 </details>
 
+
+&nbsp;
 **output.tf**: Nesse arquivo há a **definição do output do módulo**, sendo ele o ip publicado gerado pela instância.
 
 <details><summary>Clique para expandir</summary>
